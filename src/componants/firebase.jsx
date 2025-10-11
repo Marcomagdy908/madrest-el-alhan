@@ -3,14 +3,14 @@ import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "church-9a10e.firebaseapp.com",
-  projectId: "church-9a10e",
-  storageBucket: "church-9a10e.firebasestorage.app",
-  messagingSenderId: "237535800455",
-  appId: "1:237535800455:web:82078968b05a413a199c22",
-  measurementId: "G-B65174D7EH",
-  DataBaseURL: "https://church-9a10e-default-rtdb.firebaseio.com",
+  apiKey: import.meta.env.REACT_APP_API_KEY,
+  authDomain: import.meta.env.REACT_APP_AUTH_DOMAIN,
+  projectId: import.meta.env.REACT_APP_PROJECT_ID,
+  storageBucket: import.meta.env.REACT_APP_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.REACT_APP_MESSAGING_SENDER_ID,
+  appId: import.meta.env.REACT_APP_APP_ID,
+  measurementId:import.meta.env.REACT_APP_MEASUREMENT_ID,
+  DataBaseURL: import.meta.env.REACT_APP_DATABASE_URL,
 };
 
 // Initialize Firebase
