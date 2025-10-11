@@ -3,7 +3,7 @@ import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAoZzVJtiTkgjOTTv86xrR6qeiQKJgqd68",
+  apiKey: "",
   authDomain: "church-9a10e.firebaseapp.com",
   projectId: "church-9a10e",
   storageBucket: "church-9a10e.firebasestorage.app",
