@@ -24,45 +24,66 @@ function AttendanceScanner() {
       return;
     }
 
-    const qrCodeScanner = new Html5Qrcode("reader");
-    scannerRef.current = qrCodeScanner;
-
     const startScanner = async () => {
+      // Don't start if not in scanning mode or if scanner is already active
+      if (
+        !isScanning ||
+        (scannerRef.current && scannerRef.current.isScanning)
+      ) {
+        return;
+      }
+
+      // Initialize scanner on first start or after it has been cleared.
+      if (!scannerRef.current) {
+        scannerRef.current = new Html5Qrcode("reader");
+      }
+
       try {
-        await qrCodeScanner.start(
+        await scannerRef.current.start(
           { facingMode: "environment" },
           {
             fps: 10,
             qrbox: { width: 250, height: 250 },
           },
           async (decodedText) => {
-            // --- on success ---
             setIsScanning(false);
-            await qrCodeScanner.stop();
+            // No need to stop here, the cleanup effect will handle it.
             await handleScanSuccess(decodedText);
           },
           (errorMessage) => {
-            // --- on error ---
-            // console.warn(`QR error: ${errorMessage}`);
+            // ignore errors, they are expected when no QR code is in view
+            setError(errorMessage);
+            setIsScanning(false);
           }
         );
       } catch (err) {
         setError(
           `Unable to start scanner: ${err.message}. Please ensure you have given camera permissions.`
         );
+        setIsScanning(false);
       }
     };
 
     startScanner();
 
     return () => {
-      if (scannerRef.current && scannerRef.current.isScanning) {
+      // Only try to stop the scanner if it's in a scanning state.
+      if (scannerRef.current && scannerRef.current.getState() === 2) {
+        // 2 is Html5QrcodeScannerState.SCANNING
         scannerRef.current
           .stop()
-          .catch((err) => console.error("Failed to stop scanner", err));
+          .then(() => {
+            if (scannerRef.current) {
+              scannerRef.current.clear();
+            }
+            scannerRef.current = null;
+          })
+          .catch((err) => {
+            console.error("Failed to stop and clear scanner", err);
+          });
       }
     };
-  }, [lecture]);
+  }, [lecture, isScanning, navigate]);
 
   const handleScanSuccess = async (userId) => {
     if (!userId) {
@@ -83,17 +104,18 @@ function AttendanceScanner() {
       }
 
       const userData = userSnapshot.val();
-      const attendance = userData.attendance || [];
-      const attendanceRecord = `${lecture.date} - ${lecture.title}`;
+      const lectureAttendeesRef = ref(db, `lecs/${lecture.id}/attendees`);
+      const attendeesSnapshot = await get(lectureAttendeesRef);
+      const attendees = attendeesSnapshot.val() || {};
 
-      if (attendance.includes(attendanceRecord)) {
+      if (attendees[userId] === true) {
         setScanResult({
           success: false,
           message: `${userData.name} is already marked as present.`,
         });
       } else {
-        const newAttendance = [...attendance, attendanceRecord];
-        await update(userRef, { attendance: newAttendance });
+        // Set attendance for this user to true for this lecture
+        await update(lectureAttendeesRef, { [userId]: true });
         setScanResult({
           success: true,
           message: `Successfully marked ${userData.name} as present.`,
@@ -109,6 +131,7 @@ function AttendanceScanner() {
     setScanResult(null);
     setError(null);
     setIsScanning(true);
+    // The useEffect will now handle restarting the scanner
   };
 
   if (!lecture) {

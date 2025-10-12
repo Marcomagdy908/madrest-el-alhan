@@ -14,6 +14,7 @@ import Form from "react-bootstrap/Form";
 function Profile() {
   const { userId } = useParams();
   const [data, setData] = useState(null);
+  const [attendanceData, setAttendanceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -25,15 +26,29 @@ function Profile() {
     const getuser = async () => {
       try {
         setLoading(true);
-        const snapshot = await get(ref(db, `users/${userId}`));
-        if (snapshot.exists()) {
-          const userData = snapshot.val();
-          // Ensure attendance is an array before setting state
-          if (userData.attendance && !Array.isArray(userData.attendance)) {
-            userData.attendance = Object.values(userData.attendance);
-          }
-          setEditData({ name: userData.name, phone: userData.phone });
+        const userSnapshot = await get(ref(db, `users/${userId}`));
+        if (userSnapshot.exists()) {
+          const userData = userSnapshot.val();
           setData(userData);
+          setEditData({ name: userData.name, phone: userData.phone });
+
+          // Fetch lectures to build attendance overview
+          const lecsSnapshot = await get(ref(db, "lecs/"));
+          if (lecsSnapshot.exists()) {
+            const lecsData = lecsSnapshot.val();
+            const userAttendance = Object.keys(lecsData)
+              .map((lecId) => {
+                const lecture = lecsData[lecId];
+                return {
+                  id: lecId,
+                  title: lecture.title,
+                  date: lecture.date,
+                  present: lecture.attendees?.[userId] === true,
+                };
+              })
+              .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by most recent
+            setAttendanceData(userAttendance);
+          }
         } else {
           setError("No data available for this user.");
         }
@@ -110,10 +125,20 @@ function Profile() {
           <Col lg={2} md={2} sm={5} className="m-3 p-3 border rounded">
             <Container fluid className="text-center">
               <h2> Overview</h2>
-              {data.attendance &&
-                data.attendance
-                  .slice(0, 3)
-                  .map((att, index) => <h5 key={index}>{att}</h5>)}
+              {attendanceData.length > 0 ? (
+                attendanceData.slice(0, 3).map((att) => (
+                  <div key={att.id} className="mb-2">
+                    <h6 className="mb-0">{att.title}</h6>
+                    <small
+                      className={att.present ? "text-success" : "text-danger"}
+                    >
+                      {att.present ? "Present" : "Absent"}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <p>No attendance records.</p>
+              )}
             </Container>
           </Col>
         </Row>

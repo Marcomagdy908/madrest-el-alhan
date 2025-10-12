@@ -16,7 +16,8 @@ function AdminDashboard() {
     name: "",
     title: "",
     date: "",
-    link: "",
+    link_pdf: "",
+    link_video: "",
   });
 
   const fetchLectures = async () => {
@@ -48,14 +49,14 @@ function AdminDashboard() {
 
   const handleClose = () => {
     setShowModal(false);
-    setCurrentLec({ id: null, name: "", title: "", date: "", link: "" });
+    setCurrentLec({ id: null, name: "", title: "", date: "", link_pdf: "", link_video: ""});
   };
 
   const handleShow = (lec = null) => {
     if (lec) {
       setCurrentLec(lec);
     } else {
-      setCurrentLec({ id: null, name: "", title: "", date: "", link: "" });
+      setCurrentLec({ id: null, name: "", title: "", date: "", link_pdf: "", link_video: ""});
     }
     setShowModal(true);
   };
@@ -74,8 +75,22 @@ function AdminDashboard() {
         await update(ref(db, `lecs/${id}`), lecData);
       } else {
         // Add new lecture
+        // Get all users to initialize attendance as false
+        const usersRef = ref(db, "users/");
+        const usersSnapshot = await get(usersRef);
+        const initialAttendees = {};
+        if (usersSnapshot.exists()) {
+          Object.keys(usersSnapshot.val()).forEach((userId) => {
+            initialAttendees[userId] = false;
+          });
+        }
+
         const newLecRef = push(ref(db, "lecs/"));
-        await set(newLecRef, lecData);
+        await set(newLecRef, {
+          ...lecData,
+          // Set all current users to not present (false) for the new lecture
+          attendees: initialAttendees,
+        });
       }
       handleClose();
       fetchLectures(); // Refresh the list
@@ -207,11 +222,20 @@ function AdminDashboard() {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Link</Form.Label>
+              <Form.Label>pdf Link</Form.Label>
               <Form.Control
                 type="url"
-                name="link"
-                value={currentLec.link}
+                name="link_pdf"
+                value={currentLec.link_pdf}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Video Link</Form.Label>
+              <Form.Control
+                type="url"
+                name="link_video"
+                value={currentLec.link_video}
                 onChange={handleInputChange}
               />
             </Form.Group>
