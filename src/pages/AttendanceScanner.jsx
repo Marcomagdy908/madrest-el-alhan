@@ -51,10 +51,8 @@ function AttendanceScanner() {
             await handleScanSuccess(decodedText);
           },
           (errorMessage) => {
-            // ignore errors, they are expected when no QR code is in view
-            setError(errorMessage);
-            setIsScanning(false);
-          }
+            console.log(errorMessage)
+          } // qrCodeErrorCallback is optional.
         );
       } catch (err) {
         setError(

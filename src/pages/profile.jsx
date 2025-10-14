@@ -1,15 +1,15 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import NavBar from "../componants/navbar";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container";
+import Form from "react-bootstrap/Form";
+import Modal from "react-bootstrap/Modal";
+import Row from "react-bootstrap/Row";
+import QRCode from "react-qr-code";
+import NavBar from "../componants/navbar";
 import { db } from "../componants/firebase";
 import { ref, get, update } from "firebase/database";
-import { useState, useEffect } from "react";
-import QRCode from "react-qr-code";
-import Modal from "react-bootstrap/Modal";
-import Form from "react-bootstrap/Form";
 
 function Profile() {
   const { userId } = useParams();

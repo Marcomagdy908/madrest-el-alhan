@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { authService as auth, db } from "../componants/firebase";
 import {
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { ref, set } from "firebase/database";
@@ -37,6 +38,23 @@ function Login() {
     } catch (error) {
       console.error("Error logging in:", error);
       alert("Invalid email or password. Please try again.");
+    }
+  };
+
+  const HandleForget = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      alert("Please enter your email address to reset your password.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alert("Password reset email sent! Please check your inbox.");
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+      alert(
+        "Failed to send password reset email. Please check the email address and try again."
+      );
     }
   };
 
@@ -114,8 +132,12 @@ function Login() {
                   />
                 </Form.Group>
                 <div className="d-flex justify-content-between">
-                  <Button size="sm" variant="link my-3 w-10">
-                    Forgot Fassword?
+                  <Button
+                    size="sm"
+                    variant="link my-3 w-10"
+                    onClick={HandleForget}
+                  >
+                    Forgot Password?
                   </Button>
                   <Button
                     variant="link my-3 w-10"
