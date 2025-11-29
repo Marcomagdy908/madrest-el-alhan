@@ -67,7 +67,6 @@ function AttendanceScanner() {
     return () => {
       // Only try to stop the scanner if it's in a scanning state.
       if (scannerRef.current && scannerRef.current.getState() === 2) {
-        // 2 is Html5QrcodeScannerState.SCANNING
         scannerRef.current
           .stop()
           .then(() => {
